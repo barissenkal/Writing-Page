@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+  <title>Writing Page</title>
+  <style>
+  html {padding: 0;}
+    body {
+      /*font-family: Verdana, Geneva, sans-serif;
+      font-size:1.2rem;*/
+      font-size:1.6rem;
+      line-height:1.4;
+      max-width:64rem;
+      margin:0 auto;
+      padding:4rem;
+      min-height:9.2rem;
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+      font-weight:300;
+      background: #fafafa;
+      color: black;
+    }
+    #toolbar{
+      height: 0px;
+      position: absolute;
+      top: 0;
+      left:0;
+      right:0;
+      font-size: 0.88rem;
+      padding-left: 4px;
+      padding-right: 4px;
+      font-family: Verdana, Geneva, sans-serif;
+    }
+    #theme{
+      float: right;
+      display: inline-block;
+    }
+    #count{
+      display: inline-block;
+    }
+  </style>
+</head>
+<body contenteditable="true" onclick="bodyClick()" ondblclick="toolbarShowHide()">
+ <div id="deleteme" style="display: inline-block; color:grey;">
+  Write something here. Don't forget to cmd-S (OR ctrl-S) afterward.
+  </br> Double Click for options.
+ </div>
+</body>
+<script type="text/javascript">
+var theme = "white";
+
+function bodyClick() {
+  if(document.getElementById("deleteme") != null){
+    document.body.innerHTML = '<div id="toolbar" contenteditable="false"></div> ';
+  }
+}
+function toolbarShowHide() {
+    var toolbar = document.getElementById("toolbar");
+    if(toolbar.style.height == "0px"){
+      toolbar.style.height="20px";
+      filltoolbar();
+      document.body.contentEditable = "false";
+    } else {
+      toolbar.style.height="0px";
+      toolbar.innerHTML = "";
+      document.body.contentEditable = "true";
+      document.body.focus();
+    }
+}
+
+function filltoolbar() {
+   document.getElementById("toolbar").innerHTML = '<div id="count" contenteditable="false"></div><div id="theme" contenteditable="false" onclick="changeTheme()">theme:' + theme + '</div>';
+   fillcount();
+}
+
+function fillcount() {
+   var countwords = 0;
+   var countsent = 0;
+   words = document.body.innerText.split(" ");
+    for (i=0 ; i < words.length ; i++){
+       // inner loop -- do the count
+       if (words[i] != "")
+          countwords += 1;
+    }
+
+    words = document.body.innerText.split(".");
+        for (i=0 ; i < words.length ; i++){
+       // inner loop -- do the count
+       if (words[i] != "")
+          countsent += 1;
+    }
+
+    if(countsent > 0) countsent -= 1;
+
+   document.getElementById("count").innerHTML =
+      countwords +
+      " words | " + countsent + " sentences" ;
+}
+
+function changeTheme() {
+   if(theme == "white"){
+    theme = "black";
+    document.body.style.color = "#fafafa";
+    document.body.style.background = "#303030";
+    document.getElementById("theme").innerText = "theme:" + theme;
+    return;
+   }
+   if(theme == "black"){
+    theme = "white";
+    document.body.style.color = "black";
+    document.body.style.background = "#fafafa";
+    document.getElementById("theme").innerText = "theme:" + theme;
+    return;
+   }
+}
+
+</script>
+</html>

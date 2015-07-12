@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+  <title>Writing Page</title>
+  <style>
+    body {
+      /*font-family: Verdana, Geneva, sans-serif;
+      font-size:1.2rem;*/
+      font-size:1.6rem;
+      line-height:1.4;
+      max-width:60rem;
+      margin:0 auto;
+      padding:4rem;
+      min-height:9.2rem;
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+      font-weight:300;
+    }
+  </style>
+</head>
+<body contenteditable="true" onclick="deleteWellcomeText()">
+  <div id="deleteme" style="display: inline-block; color:grey;">
+    Write something here. Don't forget to cmd-S (OR ctrl-S) afterward.
+  </div>
+</body>
+<script type="text/javascript">
+function deleteWellcomeText() {
+  if(document.getElementById("deleteme") != null){
+    document.body.innerHTML = '';
+  }
+}
+</script>
+</html>
