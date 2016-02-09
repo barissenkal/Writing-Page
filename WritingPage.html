@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
   <title>Writing Page</title>
   <style>
   html {padding: 0;}
@@ -20,7 +20,6 @@
       color: black;
     }
     #toolbar{
-      height: 0px;
       position: absolute;
       top: 0;
       left:0;
@@ -33,9 +32,21 @@
     #theme{
       float: right;
       display: inline-block;
+      cursor: pointer;
+    }
+    #load{
+      float: right;
+      display: inline-block;
+      cursor: pointer;
+    }
+    #new{
+      float: right;
+      display: inline-block;
+      cursor: pointer;
     }
     #count{
       display: inline-block;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -46,72 +57,216 @@
  </div>
 </body>
 <script type="text/javascript">
-var theme = "white";
 
-function bodyClick() {
-  if(document.getElementById("deleteme") != null){
-    document.body.innerHTML = '<div id="toolbar" contenteditable="false"></div> ';
+var theme,
+  bodyClick = function(){},
+  pages,
+  pageid = 0,
+  saveToLocal = true;
+
+if(typeof(Storage) !== "undefined") {
+  try {
+
+    theme = localStorage.getItem("theme");
+    if(!theme) theme = "white";
+    changeTheme(theme);
+
+    pages = localStorage.getItem("pages");
+
+    pageid = newPageID();
+
+    //TODO have pageids and "page + pageid" named localStorage enteries for faster parse and stringify
+
+    if (!pages) {
+      pages = {};
+      pages.lastPageID = pageid;
+
+      pages[pageid] = {
+        "createdAt" : new Date(),
+        "saves": []
+      };
+
+      localStorage.setItem("pages", JSON.stringify(pages));
+
+    } else {
+      pages = JSON.parse(pages);
+    }
+
+    saveToLocal = true;
+
+    addEvent(window, 'storage', function (event) {
+      if (event.key == 'pages') {
+        pages = event.newValue;
+      }
+    });
+
+  } catch (e) {
+    console.log(e);
+  }
+
+}
+
+bodyClick = function () {
+  if(document.getElementById("deleteme") != null) {
+
+    document.body.innerHTML = '';
+    if(saveToLocal) autoSaveWithInterval();
+    bodyClick = function(){};
+
   }
 }
+
 function toolbarShowHide() {
-    var toolbar = document.getElementById("toolbar");
-    if(toolbar.style.height == "0px"){
-      toolbar.style.height="20px";
-      filltoolbar();
-      document.body.contentEditable = "false";
-    } else {
-      toolbar.style.height="0px";
-      toolbar.innerHTML = "";
+  var toolbar = document.getElementById("toolbar");
+    if(toolbar){
+      toolbar.remove();
       document.body.contentEditable = "true";
       document.body.focus();
+    } else {
+      addToolbar();
+      document.body.contentEditable = "false";
     }
 }
 
-function filltoolbar() {
-   document.getElementById("toolbar").innerHTML = '<div id="count" contenteditable="false"></div><div id="theme" contenteditable="false" onclick="changeTheme()">theme:' + theme + '</div>';
-   fillcount();
+function addToolbar() {
+  var countwords = 0;
+  var countsent = 0;
+  words = document.body.innerText.split(" ");
+   for (i=0 ; i < words.length ; i++){
+      // inner loop -- do the count
+      if (words[i] != "")
+         countwords += 1;
+   }
+
+   words = document.body.innerText.split(".");
+       for (i=0 ; i < words.length ; i++){
+      // inner loop -- do the count
+      if (words[i] != "")
+         countsent += 1;
+   }
+
+   if(countsent > 0) countsent -= 1;
+
+   document.body.innerHTML += '<div id="toolbar" contenteditable="false"><div id="count" contenteditable="false">'+ countwords + ' words | ' + countsent + ' sentences' +'</div><div id="theme" contenteditable="false" onclick="toggleTheme()">theme:' + theme +'</div>'
+   + (saveToLocal ? '<div id="new" onclick="openNewPage()"> &nbsp;new&nbsp; </div><div id="load" onclick="loadFromSaved()">load</div></div>' : '</div>' );
+
 }
 
-function fillcount() {
-   var countwords = 0;
-   var countsent = 0;
-   words = document.body.innerText.split(" ");
-    for (i=0 ; i < words.length ; i++){
-       // inner loop -- do the count
-       if (words[i] != "")
-          countwords += 1;
-    }
-
-    words = document.body.innerText.split(".");
-        for (i=0 ; i < words.length ; i++){
-       // inner loop -- do the count
-       if (words[i] != "")
-          countsent += 1;
-    }
-
-    if(countsent > 0) countsent -= 1;
-
-   document.getElementById("count").innerHTML =
-      countwords +
-      " words | " + countsent + " sentences" ;
+function toggleTheme() {
+  if(theme == "white"){
+    changeTheme("black");
+  } else {
+    changeTheme("white");
+  }
 }
 
-function changeTheme() {
-   if(theme == "white"){
-    theme = "black";
+function changeTheme(newTheme){
+  theme = newTheme;
+
+  var themeText = document.getElementById("theme");
+
+  if(theme == "black"){
     document.body.style.color = "#fafafa";
     document.body.style.background = "#303030";
-    document.getElementById("theme").innerText = "theme:" + theme;
-    return;
-   }
-   if(theme == "black"){
-    theme = "white";
+    if(themeText) themeText.innerText = "theme:" + theme;
+  } else if(theme == "white"){
     document.body.style.color = "black";
     document.body.style.background = "#fafafa";
-    document.getElementById("theme").innerText = "theme:" + theme;
-    return;
-   }
+    if(themeText) themeText.innerText = "theme:" + theme;
+  }
+
+  if(saveToLocal) localStorage.setItem("theme",theme);
 }
 
+var saveIntervalID = 0;
+function autoSaveWithInterval(){
+
+  //TODO check if localStorage available
+
+  saveIntervalID = setInterval(function(){
+    if(document.body.isContentEditable){
+      savePageText(document.body.innerHTML);
+    }
+  },5000);
+}
+
+var instanceSaveCount = 0;
+function savePageText(text){
+  //updated every 12th save,  updated every 120th save, add one every 360th save + [older saves]
+
+  var currentDate = new Date();
+
+  var currentText = document.body.innerHTML;
+
+  if(pages[pageid].saves.length > 0){
+    if(pages[pageid].saves[0] != currentText){
+
+      if(instanceSaveCount > 0){
+
+        if(instanceSaveCount % 360){ //(>30min)
+          pages[pageid].saves.splice(2, 0, pages[pageid].saves[2]);
+          pages[pageid].saves[2] = pages[pageid].saves[1];
+          pages[pageid].saves[1] = pages[pageid].saves[0];
+        } else if(instanceSaveCount % 120){ //(>10min)
+          pages[pageid].saves[2] = pages[pageid].saves[1];
+          pages[pageid].saves[1] = pages[pageid].saves[0];
+        } else if(instanceSaveCount % 12){ //(>1min)
+          pages[pageid].saves[1] = pages[pageid].saves[0];
+        }
+
+      }
+
+      pages[pageid].saves[0] = currentText;
+
+      instanceSaveCount++;
+
+      //TODO have an upper limit of saves.
+
+      localStorage.setItem("pages", JSON.stringify(pages));
+    }
+  } else {
+
+    pages[pageid].saves[0] = currentText;
+
+    instanceSaveCount = 1;
+
+    localStorage.setItem("pages", JSON.stringify(pages));
+  }
+}
+
+function loadFromSaved(){
+  //TODO
+}
+
+function openNewPage(){
+
+  pageid = newPageID();
+
+  pages[pageid] = {
+    "createdAt" : new Date(),
+    "saves": []
+  };
+
+  localStorage.setItem("pages", JSON.stringify(pages));
+
+  document.body.innerHTML = '';
+
+  document.getElementById("toolbar").remove();
+  document.body.contentEditable = "true";
+  document.body.focus();
+
+}
+
+//TODO save only current on blur
+
+function newPageID() {
+  var d = new Date().getTime();
+  var uuid = 'xxxxxxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+  return uuid;
+};
 </script>
 </html>
