@@ -76,6 +76,12 @@ if(typeof(Storage) !== "undefined") {
     pageid = newPageID();
 
     //TODO have pageids and "page + pageid" named localStorage enteries for faster parse and stringify
+    //TODO use # in url for pageids.
+    //TODO no need for load. new should just load the page without hash.
+    //TODO no need for load and new buttons.
+    //TODO load will only be used when there is a hash in url
+    //TODO save last opened page, "#last" will open last page's id.
+    //TODO check for new page with same hash
 
     if (!pages) {
       pages = {};
